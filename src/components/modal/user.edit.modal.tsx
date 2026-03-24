@@ -3,10 +3,18 @@ import Modal from 'react-bootstrap/Modal';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import { useState, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+
+interface IUser {
+    name: string;
+    email: string;
+}
 
 const UserEditModal = (props: any) => {
     const { isOpenUpdateModal, setIsOpenUpdateModal, dataUser } = props;
-    const [id, setId] = useState();
+    const [id, setId] = useState<number | undefined>(undefined);
+    const queryClient = useQueryClient();
 
     const [email, setEmail] = useState<string>("");
     const [name, setName] = useState<string>("");
@@ -19,6 +27,29 @@ const UserEditModal = (props: any) => {
         }
     }, [dataUser])
 
+    const mutation = useMutation({
+        mutationFn: async (payload: IUser) => {
+            const res = await fetch(`http://localhost:8000/users/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: payload.email,
+                    name: payload.name
+                })
+            })
+            return res.json();
+        },
+        onSuccess: () => { 
+            toast("Update user successfully");
+            setIsOpenUpdateModal(false);
+            setEmail("");
+            setName("");
+            queryClient.invalidateQueries({ queryKey: ['todos'] });
+        }
+    });
+
 
     const handleSubmit = () => {
         if (!email) {
@@ -29,7 +60,7 @@ const UserEditModal = (props: any) => {
             alert("name empty");
             return;
         }
-        console.log({ email, name, id })
+        mutation.mutate({ email, name, id });
     }
 
     return (

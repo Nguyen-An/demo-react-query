@@ -34,6 +34,7 @@ const BlogEditModal = (props: any) => {
             alert("content empty");
             return;
         }
+
         console.log({ title, author, content, id })
     }
 

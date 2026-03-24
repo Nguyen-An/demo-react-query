@@ -1,11 +1,29 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import { toast } from 'react-toastify';
 
 const UserDeleteModal = (props: any) => {
     const { dataUser, isOpenDeleteModal, setIsOpenDeleteModal } = props;
 
+    const queryClient = useQueryClient();
+
+    const mutation = useMutation({
+        mutationFn: async () => {
+            const res = await fetch(`http://localhost:8000/users/${dataUser?.id}`, {
+                method: "DELETE",
+            })
+            return res.json();
+        },
+        onSuccess: () => {
+            toast("Delete user successfully");
+            setIsOpenDeleteModal(false);
+            queryClient.invalidateQueries({ queryKey: ['todos'] });
+        }
+    });
+
     const handleSubmit = () => {
-        console.log({ id: dataUser?.id });
+        mutation.mutate();
     }
 
     return (
